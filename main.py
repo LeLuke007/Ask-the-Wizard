@@ -1,5 +1,5 @@
 import cv2, os , random, threading, csv
-import numpy as np
+# import numpy as np
 import speech_recognition as sr
 
 face_cascade = cv2.CascadeClassifier('./haarcascades/haarcascade_frontalface_default.xml')
