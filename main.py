@@ -8,13 +8,14 @@ cmdFile = 'cmd.csv'
 if not os.path.exists(cmdFile):
     with open(cmdFile, 'w') as f:
         writer = csv.writer(f)
-        writer.writerow(['command'])
+        writer.writerow(['commands'])
 
 cap = cv2.VideoCapture(0)
 recognizer = sr.Recognizer()
 cv2.namedWindow("Frame", cv2.WINDOW_NORMAL)
 
 listening_thread = None
+bg_filter = False
 
 def cmd_writer(data, cmdFile=cmdFile):
     with open(cmdFile, 'a', newline='') as f:
@@ -70,9 +71,9 @@ while True:
         cv2.rectangle(frame, (x,y), (x+w,y+h), (255,0,0), 2)
         
         cmd = latest_cmd().strip()
-        if cmd == "change background":
-            frame = change_background(frame)
-
+        if cmd == "change background" and bg_filter == False:
+            bg_filter = True
+        
         cv2.imshow('Frame', frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
