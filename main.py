@@ -1,21 +1,24 @@
 import cv2, os , random, threading, csv
-# import numpy as np
+import numpy as np
 import speech_recognition as sr
+import mediapipe as mp
 
 face_cascade = cv2.CascadeClassifier('./haarcascades/haarcascade_frontalface_default.xml')
 cmdFile = 'cmd.csv'
 
-if not os.path.exists(cmdFile):
-    with open(cmdFile, 'w') as f:
-        writer = csv.writer(f)
-        writer.writerow(['commands'])
+with open(cmdFile, 'w') as f:
+    writer = csv.writer(f)
+    writer.writerow(['commands'])
 
 cap = cv2.VideoCapture(0)
 recognizer = sr.Recognizer()
 cv2.namedWindow("Frame", cv2.WINDOW_NORMAL)
 
 listening_thread = None
-bg_filter = False
+current_background = None
+
+mp_selfie_segmentation = mp.solutions.selfie_segmentation
+selfie_segmentation = mp_selfie_segmentation.SelfieSegmentation(model_selection=1)
 
 def cmd_writer(data, cmdFile=cmdFile):
     with open(cmdFile, 'a', newline='') as f:
@@ -34,7 +37,7 @@ def change_background(frame):
     img = random.choice(os.listdir('./bg'))
     bg_img = cv2.imread(os.path.join('./bg',img))
     bg_resized = cv2.resize(bg_img, dsize=(frame.shape[1], frame.shape[0]))
-    return cv2.addWeighted(frame, 0.5, bg_resized, 0.5, 0)
+    return bg_resized
 
 def listen_for_commands():
     with sr.Microphone() as source:
@@ -61,20 +64,27 @@ def start_listening():
 
 while True:
     _, frame = cap.read()
-    cv2.imshow('Frame',frame)
+    # cv2.imshow('Frame',frame)
     faces = face_cascade.detectMultiScale(frame, scaleFactor=1.3, minNeighbors=6)
+    results = selfie_segmentation.process(frame)
+    mask = results.segmentation_mask
     
     if len(faces) > 0:
         start_listening()
 
+    cmd = latest_cmd().strip()
+    if cmd == "change background":
+        current_background = change_background(frame)
+        cmd_writer([''])
+    
+    if current_background is not None:
+        condition = mask > 0.5
+        frame = np.where(condition[:, :, None], frame, current_background)
+
     for (x,y,w,h) in faces:
         cv2.rectangle(frame, (x,y), (x+w,y+h), (255,0,0), 2)
-        
-        cmd = latest_cmd().strip()
-        if cmd == "change background" and bg_filter == False:
-            bg_filter = True
-        
-        cv2.imshow('Frame', frame)
+    
+    cv2.imshow('Frame', frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
