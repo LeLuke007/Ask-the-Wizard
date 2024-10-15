@@ -77,6 +77,7 @@ def age_filter(frame, x, y, w, h, filter_type):
     return frame
 
 def listen_for_commands():
+    global current_time_filter
     with sr.Microphone() as source:
         print("Listening for commands...")
         try:
@@ -87,6 +88,7 @@ def listen_for_commands():
                 cmd_writer(['change background'])
                 command = ''
             if command in ["change time", "time change", "change age", "age change", "age"]:
+                current_time_filter = 'old' if current_time_filter == 'baby' else 'baby'
                 cmd_writer(['change time'])
                 command = ''
             if command in ['return to home', 'reset background', 'remove background', 'home']:
@@ -95,7 +97,7 @@ def listen_for_commands():
             if command in ['mood', 'mood check', 'what\'s my mood', "discover my mood"]:
                 cmd_writer(['mood'])
                 command = ''
-            if command in ["exit", "quit", "run away"]:
+            if command in ["exit", "quit", "run away",'runaway']:
                 cmd_writer(['exit'])
                 command = ''
         except sr.UnknownValueError:
@@ -152,8 +154,6 @@ while True:
             home = False
             if current_time_filter is None:
                 current_time_filter = "old" if random.choice([True, False]) else "baby"
-            else:
-                current_time_filter = 'old' if current_time_filter == 'baby' else 'baby'
             frame = age_filter(frame, x, y, w, h, current_time_filter)
             cv2.putText(frame, f"Age: {current_time_filter}", (x, y - 10), cv2.FONT_HERSHEY_COMPLEX, 1, (0,0,255), 2)
     
@@ -179,6 +179,7 @@ while True:
     if key == ord('d'):
         cmd_writer(['change background'])
     elif key == ord('t'):
+        current_time_filter = 'old' if current_time_filter == 'baby' else 'baby'
         cmd_writer(['change time'])
     elif key == ord('m'):
         cmd_writer(['mood'])
