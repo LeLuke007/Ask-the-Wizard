@@ -87,7 +87,7 @@ def listen_for_commands():
             if command in ["change reality", "change background", "change dimension", 'dimension change', 'dimension', 'change my reality']:
                 cmd_writer(['change background'])
                 command = ''
-            if command in ["change time", "time change", "change age", "age change", "age", 'change my time']:
+            if command in ["change time", "time change", "change age", "age change", "age", 'change my time', 'hide', 'reveal', 'hide me', 'reveal me']:
                 current_time_filter = 'reveal' if current_time_filter == 'hide' else 'hide'
                 cmd_writer(['change time'])
                 command = ''
@@ -155,7 +155,7 @@ while True:
             if current_time_filter is None:
                 current_time_filter = "reveal" if random.choice([True, False]) else "hide"
             frame = age_filter(frame, x, y, w, h, current_time_filter)
-            cv2.putText(frame, f"Age: {current_time_filter}", (x, y - 10), cv2.FONT_HERSHEY_COMPLEX, 1, (0,0,255), 2)
+            cv2.putText(frame, f"Identity: {current_time_filter}", (x, y - 10), cv2.FONT_HERSHEY_COMPLEX, 1, (0,0,255), 2)
     
     if cmd == "home":
         current_background = None
