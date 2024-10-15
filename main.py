@@ -63,14 +63,14 @@ def emoji_reaction(emotion,x,y,w,h,frame):
     
 def age_filter(frame, x, y, w, h, filter_type):
     face_region = frame[y:y+h, x:x+w]
-    if filter_type == "old":
+    if filter_type == "reveal":
         kernel = np.array([[0, -1, 0], 
                            [-1, 5, -1], 
                            [0, -1, 0]])
         face_region = cv2.filter2D(face_region, -1, kernel)
     
-    elif filter_type == "baby":
-        face_region = cv2.GaussianBlur(face_region, (15, 15), 30)
+    elif filter_type == "hide":
+        face_region = cv2.GaussianBlur(face_region, (51, 51), 0)
         face_region = cv2.addWeighted(face_region, 1.5, face_region, -0.5, 0)
 
     frame[y:y+h, x:x+w] = face_region
@@ -84,11 +84,11 @@ def listen_for_commands():
             audio = recognizer.listen(source, timeout=5)
             command = recognizer.recognize_google(audio).lower()
             print(f"You said: {command}")
-            if command in ["change reality", "change background", "change dimension", 'dimension change', 'dimension']:
+            if command in ["change reality", "change background", "change dimension", 'dimension change', 'dimension', 'change my reality']:
                 cmd_writer(['change background'])
                 command = ''
-            if command in ["change time", "time change", "change age", "age change", "age"]:
-                current_time_filter = 'old' if current_time_filter == 'baby' else 'baby'
+            if command in ["change time", "time change", "change age", "age change", "age", 'change my time']:
+                current_time_filter = 'reveal' if current_time_filter == 'hide' else 'hide'
                 cmd_writer(['change time'])
                 command = ''
             if command in ['return to home', 'reset background', 'remove background', 'home']:
@@ -125,7 +125,7 @@ while True:
         display_text(fr, "ASK THE WIZARD", ((1*w)//5), 40, 1.5, (255,255,255), 2)
         display_text(fr, "Speak to the Wizard! OR Press:", 8, h-110, color=(255,255,0))
         display_text(fr, "'d' to get your dimension changed", 8, h-90)
-        display_text(fr, "'t' to get your age changed", 8, h-70)
+        display_text(fr, "'t' to hide/reveal yourself", 8, h-70)
         display_text(fr, "'m' to discover your mood", 8, h-50)
         display_text(fr, "'h' to return home", 8, h-30)
         display_text(fr, "'q' to run away", 8, h-10)
@@ -153,7 +153,7 @@ while True:
         if cmd == "change time":
             home = False
             if current_time_filter is None:
-                current_time_filter = "old" if random.choice([True, False]) else "baby"
+                current_time_filter = "reveal" if random.choice([True, False]) else "hide"
             frame = age_filter(frame, x, y, w, h, current_time_filter)
             cv2.putText(frame, f"Age: {current_time_filter}", (x, y - 10), cv2.FONT_HERSHEY_COMPLEX, 1, (0,0,255), 2)
     
@@ -179,7 +179,7 @@ while True:
     if key == ord('d'):
         cmd_writer(['change background'])
     elif key == ord('t'):
-        current_time_filter = 'old' if current_time_filter == 'baby' else 'baby'
+        current_time_filter = 'reveal' if current_time_filter == 'hide' else 'hide'
         cmd_writer(['change time'])
     elif key == ord('m'):
         cmd_writer(['mood'])
